@@ -1,4 +1,4 @@
-package main
+package todo
 
 import (
 	"fmt"
@@ -35,6 +35,19 @@ func validateIndex(index int, todos Todos) error {
 	}
 
 	return nil
+}
+
+func getPriorityOrder(priority TPriority) int {
+	switch priority {
+	case High:
+		return 3
+	case Medium:
+		return 2
+	case Low:
+		return 1
+	default:
+		return 4
+	}
 }
 
 func (todos *Todos) Add(todo Todo) {
@@ -89,14 +102,14 @@ func (todos *Todos) EditTitle(index int, title string) error {
 }
 
 func (todos *Todos) SortByPriorityAsc() {
-	sort.Slice(*todos, func(i, j int) bool {
-		return (*todos)[i].Priority < (*todos)[j].Priority
+	sort.SliceStable(*todos, func(i, j int) bool {
+		return getPriorityOrder((*todos)[i].Priority) < getPriorityOrder((*todos)[j].Priority)
 	})
 }
 
 func (todos *Todos) SortByPriorityDesc() {
-	sort.Slice(*todos, func(i, j int) bool {
-		return (*todos)[i].Priority > (*todos)[j].Priority
+	sort.SliceStable(*todos, func(i, j int) bool {
+		return getPriorityOrder((*todos)[i].Priority) > getPriorityOrder((*todos)[j].Priority)
 	})
 }
 

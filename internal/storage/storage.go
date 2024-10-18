@@ -1,4 +1,4 @@
-package main
+package storage
 
 import (
 	"encoding/json"
@@ -24,11 +24,11 @@ func NewStorage[T any](fileName string) *Storage[T] {
 }
 
 func (s *Storage[T]) Save(data T) error {
-	fileData, error := json.Marshal(data)
+	fileData, err := json.Marshal(data)
 
 	// Check if there was an error while marshalling the data
-	if error != nil {
-		return error
+	if err != nil {
+		return err
 	}
 
 	// Write the marshalled data to the file
@@ -37,11 +37,11 @@ func (s *Storage[T]) Save(data T) error {
 
 func (s *Storage[T]) Load(data *T) error {
 	// Read the file data
-	fileData, error := os.ReadFile(s.fileName)
+	fileData, err := os.ReadFile(s.fileName)
 
 	// Check if there was an error while reading the file
-	if error != nil {
-		return error
+	if err != nil {
+		return err
 	}
 
 	// Unmarshal the file data into the 'data' pointer
