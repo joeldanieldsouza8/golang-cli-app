@@ -168,10 +168,12 @@ func (flags *Flags) handleEdit(todos *todo.Todos) error {
 	}
 
 	// This is using the scoped approach to handle the error as the variable 'err' is already declared above
-	if err := todos.EditTitle(index, parts[1]); err != nil {
+	err = todos.EditTitle(index, parts[1])
+	if err != nil {
 		return err
 	}
 
+	// If no errors, return nil
 	return nil
 }
 
