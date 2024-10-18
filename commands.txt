@@ -1,0 +1,8 @@
+go run . -help
+go run . -add "Learn Golang Basics:2021-12-31:high"
+go run . -list
+go run . -remove 1
+go run . -toggle 0
+go run . -edit "0:Master Golang Basics"
+go run . -completed
+go run . -sort asc

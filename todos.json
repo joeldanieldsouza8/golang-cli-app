@@ -1,0 +1,26 @@
+[
+  {
+    "Title": "Learn Golang Basics",
+    "Completed": false,
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "CompletedAt": null,
+    "DueDate": "2021-12-31T00:00:00Z",
+    "Priority": "high"
+  },
+  {
+    "Title": "low priority task added here",
+    "Completed": false,
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "CompletedAt": null,
+    "DueDate": "2021-12-31T00:00:00Z",
+    "Priority": "low"
+  },
+  {
+    "Title": "high prioerity task",
+    "Completed": false,
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "CompletedAt": null,
+    "DueDate": "2021-12-31T00:00:00Z",
+    "Priority": "medium"
+  }
+]
