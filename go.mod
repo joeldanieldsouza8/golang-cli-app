@@ -1,4 +1,4 @@
-module todo-list-cli-app
+module github.com/joeldanieldsouza8/golang-cli-app
 
 go 1.23.1
 

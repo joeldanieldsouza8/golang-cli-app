@@ -7,10 +7,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/joeldanieldsouza8/golang-cli-app/internal/errors"
+	"github.com/joeldanieldsouza8/golang-cli-app/internal/todo"
 )
 
 // CommandFlags stores the parsed command-line flags
-type CommandFlags struct {
+type Flags struct {
 	Add            string
 	Remove         int
 	ToggleComplete int
@@ -22,12 +25,12 @@ type CommandFlags struct {
 }
 
 // Since we aren't modifying the 'CommandFlags' struct instance, we don't need to pass it as a pointer
-func ParseFlags() CommandFlags {
+func ParseFlags() Flags {
 	// Create a new CommandFlags instance
 	// flags := &CommandFlags{} // 'flags' is a pointer to the new 'CommandFlags' struct instance memory address
 
 	// Create a new CommandFlags instance
-	var flags CommandFlags
+	var flags Flags
 
 	flag.StringVar(&flags.Add, "add", "", "Add a new todo") // '&flags.Add' gets the memory address of the 'Add' field in the 'CommandFlags' struct instance. This is needed because the StringVar function will store the parsed flag value at this memory address
 	flag.IntVar(&flags.Remove, "remove", -1, "Remove a todo by index")
@@ -80,7 +83,7 @@ func ParseFlags() CommandFlags {
 // 	return Split{Part1: parts[0], Part2: parts[1]}, nil
 // }
 
-func (flags *CommandFlags) Execute(todos *Todos) error {
+func (flags *Flags) Execute(todos *todo.Todos) error {
 	switch {
 	case flags.List:
 		return flags.handleList(todos)
@@ -100,20 +103,23 @@ func (flags *CommandFlags) Execute(todos *Todos) error {
 	case flags.Completed:
 		return flags.handleCompleted(todos)
 
+	case flags.Sort != "":
+		return flags.handleSort(todos)
+
 	default:
-		return &ValidationError{Message: "No command provided. Use -help to see the list of available commands"}
+		return &errors.ValidationError{Message: "No command provided. Use -help to see the list of available commands"}
 	}
 }
 
-func (flags *CommandFlags) handleList(todos *Todos) error {
+func (flags *Flags) handleList(todos *todo.Todos) error {
 	todos.List()
 	return nil
 }
 
-func (flags *CommandFlags) handleAdd(todos *Todos) error {
+func (flags *Flags) handleAdd(todos *todo.Todos) error {
 	// Check if the string contains a colon
 	if !strings.Contains(flags.Add, ":") {
-		return &ValidationError{Message: "Invalid add format. Expected <string>:<YYYY-MM-DD>:<high | medium | low>"}
+		return &errors.ValidationError{Message: "Invalid add format. Expected <string>:<YYYY-MM-DD>:<high | medium | low>"}
 	}
 
 	// Split the string into 3 parts
@@ -121,30 +127,30 @@ func (flags *CommandFlags) handleAdd(todos *Todos) error {
 
 	// Check if there are 3 parts
 	if len(parts) != 3 {
-		return &ValidationError{Message: "Invalid add format. Expected <string>:<YYYY-MM-DD>:<high | medium | low>"}
+		return &errors.ValidationError{Message: "Invalid add format. Expected <string>:<YYYY-MM-DD>:<high | medium | low>"}
 	}
 
 	// Check if the second part can be parsed as the valid date format
 	dueDate, err := time.Parse("2006-01-02", parts[1])
 	if err != nil {
-		return &DateParseError{DateString: parts[1]}
+		return &errors.DateParseError{DateString: parts[1]}
 	}
 
 	// Check if the third part is a valid priority level
 	priority, err := parsePriority(parts[2])
 	if err != nil {
-		return &PriorityParseError{Priority: parts[2]}
+		return &errors.PriorityParseError{Priority: parts[2]}
 	}
 
-	todos.Add(Todo{Title: parts[0], DueDate: &dueDate, Priority: priority})
+	todos.Add(todo.Todo{Title: parts[0], DueDate: &dueDate, Priority: priority})
 
 	return nil
 }
 
-func (flags *CommandFlags) handleEdit(todos *Todos) error {
+func (flags *Flags) handleEdit(todos *todo.Todos) error {
 	// Check if the string contains a colon
 	if !strings.Contains(flags.EditTitle, ":") {
-		return &ValidationError{Message: "Invalid edit format. Expected <int>:<string>"}
+		return &errors.ValidationError{Message: "Invalid edit format. Expected <int>:<string>"}
 	}
 
 	// Split the string into 2 parts
@@ -152,13 +158,13 @@ func (flags *CommandFlags) handleEdit(todos *Todos) error {
 
 	// Check if there are 2 parts
 	if len(parts) != 2 {
-		return &ValidationError{Message: "Invalid edit format. Expected <int>:<string>"}
+		return &errors.ValidationError{Message: "Invalid edit format. Expected <int>:<string>"}
 	}
 
 	// Check if the first part can be parsed as an integer
 	index, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return &ValidationError{Message: "Invalid index. Expected an integer"}
+		return &errors.ValidationError{Message: "Invalid index. Expected an integer"}
 	}
 
 	// This is using the scoped approach to handle the error as the variable 'err' is already declared above
@@ -169,26 +175,26 @@ func (flags *CommandFlags) handleEdit(todos *Todos) error {
 	return nil
 }
 
-func (flags *CommandFlags) handleRemove(todos *Todos) error {
+func (flags *Flags) handleRemove(todos *todo.Todos) error {
 	if err := todos.Remove(flags.Remove); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (flags *CommandFlags) handleToggle(todos *Todos) error {
+func (flags *Flags) handleToggle(todos *todo.Todos) error {
 	if err := todos.ToggleComplete(flags.ToggleComplete); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (flags *CommandFlags) handleCompleted(todos *Todos) error {
+func (flags *Flags) handleCompleted(todos *todo.Todos) error {
 	todos.Completed()
 	return nil
 }
 
-func (flags *CommandFlags) handleSort(todos *Todos) error {
+func (flags *Flags) handleSort(todos *todo.Todos) error {
 	if flags.Sort != "" {
 		switch strings.ToLower(flags.Sort) {
 		case "asc":
@@ -198,21 +204,21 @@ func (flags *CommandFlags) handleSort(todos *Todos) error {
 			todos.SortByPriorityDesc()
 
 		default:
-			return &ValidationError{Message: "Invalid sort order. Expected asc or desc"}
+			return &errors.ValidationError{Message: "Invalid sort order. Expected asc or desc"}
 		}
 	}
 
 	return nil
 }
 
-func parsePriority(s string) (TPriority, error) {
+func parsePriority(s string) (todo.TPriority, error) {
 	switch strings.ToLower(s) {
 	case "high":
-		return High, nil
+		return todo.High, nil
 	case "medium":
-		return Medium, nil
+		return todo.Medium, nil
 	case "low":
-		return Low, nil
+		return todo.Low, nil
 	default:
 		return "", fmt.Errorf("invalid priority level: %s. Expected high, medium, or low", s)
 	}

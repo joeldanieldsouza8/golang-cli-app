@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/aquasecurity/table"
+
+	"github.com/joeldanieldsouza8/golang-cli-app/internal/errors"
 )
 
 type TPriority string
@@ -31,7 +33,7 @@ type Todos []Todo
 // This is private function because it starts with a lowercase letter
 func validateIndex(index int, todos Todos) error {
 	if index < 0 || index >= len(todos) {
-		return &IndexOutOfRangeError{Index: index}
+		return &errors.IndexOutOfRangeError{Index: index}
 	}
 
 	return nil
